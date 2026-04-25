@@ -1,18 +1,45 @@
 // This function takes the translation and two rotation angles (in radians) as input arguments.
 // The two rotations are applied around x and y axes.
 // It returns the combined 4x4 transformation matrix as an array in column-major order.
-// You can use the MatrixMult function defined in project5.html to multiply two 4x4 matrices in the same format.
+// You can use the MatrixMult function defined in project5.html (((5?))) to multiply two 4x4 matrices in the same format.
 function GetModelViewMatrix( translationX, translationY, translationZ, rotationX, rotationY )
 {
-	// [TO-DO] Modify the code below to form the transformation matrix.
 	var trans = [
-		1, 0, 0, 0,
-		0, 1, 0, 0,
-		0, 0, 1, 0,
-		translationX, translationY, translationZ, 1
+		1, 0, 0, 0, //column 1
+		0, 1, 0, 0, //column 2
+		0, 0, 1, 0, //column 3
+		translationX, translationY, translationZ, 1 //column 4
 	];
-	var mv = trans;
-	return mv;
+
+	//change of vars to simplify
+	var sin_X = Math.sin(rotationX);
+	var cos_X = Math.cos(rotationX);
+	var sin_Y = Math.sin(rotationY);
+	var cos_Y = Math.cos(rotationY);
+
+	//robotics 1 but column major notation
+	//4x4 because you'll have to merge it with transl matrix
+
+	var rotX = [
+		1, 0, 0, 0,
+		0, cos_X, sin_X, 0,
+		0, -sin_X, cos_X, 0,
+		0, 0, 0, 1
+	];
+
+	var rotY = [
+		cos_Y, 0, -sin_Y, 0,
+		0, 1, 0, 0,
+		sin_Y, 0, cos_Y, 0,
+		0, 0, 0, 1
+	];
+
+	var mvp = MatrixMult(
+		trans, MatrixMult(
+			rotY, rotX
+		)
+	);
+	return mvp;
 }
 
 
