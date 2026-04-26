@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Project 3 — Blinn-Phong Shading Study Sheet</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Instrument+Serif&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0e1117;
+    --surface: #161b22;
+    --surface2: #1c2230;
+    --border: #2a3140;
+    --text: #e0e4ea;
+    --text-muted: #8b95a5;
+    --accent: #6ee7b7;
+    --accent2: #60a5fa;
+    --accent3: #f9a8d4;
+    --accent4: #fbbf24;
+    --code-bg: #111820;
+    --keyword: #c792ea;
+    --string: #c3e88d;
+    --func: #82aaff;
+    --comment: #546e7a;
+    --number: #f78c6c;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    line-height: 1.7;
+    padding: 2rem;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  /* HEADER */
+  header {
+    text-align: center;
+    padding: 3rem 0 2rem;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 3rem;
+  }
+  header .tag {
+    display: inline-block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--accent);
+    background: rgba(110, 231, 183, 0.08);
+    border: 1px solid rgba(110, 231, 183, 0.2);
+    padding: 0.3em 1em;
+    border-radius: 100px;
+    margin-bottom: 1.2rem;
+  }
+  header h1 {
+    font-family: 'Instrument Serif', serif;
+    font-size: 2.8rem;
+    font-weight: 400;
+    letter-spacing: -0.02em;
+    color: #fff;
+    margin-bottom: 0.5rem;
+  }
+  header p {
+    color: var(--text-muted);
+    font-size: 1rem;
+  }
+
+  /* TABLE OF CONTENTS */
+  .toc {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.8rem 2rem;
+    margin-bottom: 3rem;
+  }
+  .toc h2 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--accent2);
+    margin-bottom: 1rem;
+  }
+  .toc ol {
+    list-style: none;
+    counter-reset: toc-counter;
+    columns: 2;
+    column-gap: 2rem;
+  }
+  .toc li {
+    counter-increment: toc-counter;
+    padding: 0.3em 0;
+    font-size: 0.92rem;
+    color: var(--text-muted);
+    break-inside: avoid;
+  }
+  .toc li::before {
+    content: counter(toc-counter, decimal-leading-zero);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--accent);
+    margin-right: 0.7em;
+  }
+  .toc a {
+    color: var(--text);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+  .toc a:hover { color: var(--accent); }
+
+  /* SECTIONS */
+  section {
+    margin-bottom: 3rem;
+  }
+  section h2 {
+    font-family: 'Instrument Serif', serif;
+    font-size: 1.8rem;
+    font-weight: 400;
+    color: #fff;
+    margin-bottom: 0.3rem;
+    display: flex;
+    align-items: baseline;
+    gap: 0.7rem;
+  }
+  section h2 .num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    color: var(--accent);
+    letter-spacing: 0.05em;
+  }
+  section > .desc {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* CONCEPT CARDS */
+  .concept {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+  }
+  .concept h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.6rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .concept h3 .dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+    flex-shrink: 0;
+  }
+  .concept p { font-size: 0.9rem; color: var(--text-muted); }
+  .concept p + p { margin-top: 0.5rem; }
+
+  .dot-green  { background: var(--accent);  }
+  .dot-blue   { background: var(--accent2); }
+  .dot-pink   { background: var(--accent3); }
+  .dot-yellow { background: var(--accent4); }
+
+  /* FORMULA BLOCKS */
+  .formula {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent2);
+    border-radius: 8px;
+    padding: 1.2rem 1.5rem;
+    margin: 1rem 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+    line-height: 2;
+    color: var(--text);
+    overflow-x: auto;
+  }
+  .formula .label {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--accent2);
+    display: block;
+    margin-bottom: 0.5rem;
+  }
+  .formula .hl-green  { color: var(--accent);  }
+  .formula .hl-blue   { color: var(--accent2); }
+  .formula .hl-pink   { color: var(--accent3); }
+  .formula .hl-yellow { color: var(--accent4); }
+  .formula .hl-muted  { color: var(--comment); }
+
+  /* CODE BLOCKS */
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.2rem 1.5rem;
+    margin: 1rem 0;
+    overflow-x: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    line-height: 1.8;
+    color: var(--text);
+    position: relative;
+  }
+  pre .tag-label {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.8rem;
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    opacity: 0.5;
+  }
+  .kw { color: var(--keyword); }
+  .fn { color: var(--func); }
+  .st { color: var(--string); }
+  .cm { color: var(--comment); }
+  .nu { color: var(--number); }
+  .tp { color: var(--accent4); }
+  .new-line { background: rgba(110, 231, 183, 0.06); display: inline; }
+
+  /* INFO CALLOUTS */
+  .callout {
+    display: flex;
+    gap: 1rem;
+    background: var(--surface2);
+    border-radius: 8px;
+    padding: 1.2rem 1.5rem;
+    margin: 1rem 0;
+    font-size: 0.88rem;
+    border: 1px solid var(--border);
+  }
+  .callout .icon {
+    font-size: 1.2rem;
+    flex-shrink: 0;
+    line-height: 1.5;
+  }
+  .callout p { color: var(--text-muted); }
+  .callout strong { color: var(--text); }
+
+  /* COMPARISON TABLE */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1rem 0;
+    font-size: 0.85rem;
+  }
+  th {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent2);
+    text-align: left;
+    padding: 0.8rem 1rem;
+    border-bottom: 2px solid var(--border);
+  }
+  td {
+    padding: 0.7rem 1rem;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-muted);
+    vertical-align: top;
+  }
+  td:first-child {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.82rem;
+    color: var(--text);
+    white-space: nowrap;
+  }
+
+  /* PIPELINE DIAGRAM */
+  .pipeline {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    margin: 1.5rem 0;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .pipeline .stage {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.8rem 1.2rem;
+    text-align: center;
+    min-width: 120px;
+  }
+  .pipeline .stage .name {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #fff;
+  }
+  .pipeline .stage .detail {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    margin-top: 0.2rem;
+  }
+  .pipeline .arrow {
+    color: var(--accent);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1rem;
+    padding: 0 0.3rem;
+  }
+
+  /* KEY-VALUE ITEMS */
+  .kv-list {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.4rem 1.2rem;
+    font-size: 0.88rem;
+    margin: 0.8rem 0;
+  }
+  .kv-list dt {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.82rem;
+    color: var(--accent);
+  }
+  .kv-list dd {
+    color: var(--text-muted);
+  }
+
+  /* FOOTER */
+  footer {
+    text-align: center;
+    padding: 2rem 0;
+    border-top: 1px solid var(--border);
+    color: var(--text-muted);
+    font-size: 0.78rem;
+  }
+
+  @media (max-width: 600px) {
+    body { padding: 1rem; }
+    header h1 { font-size: 2rem; }
+    .toc ol { columns: 1; }
+    .pipeline { flex-direction: column; }
+    .pipeline .arrow { transform: rotate(90deg); }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="tag">Interactive Computer Graphics</div>
+  <h1>Blinn-Phong Shading in WebGL</h1>
+  <p>Project 3 — Complete theory &amp; implementation reference</p>
+</header>
+
+<!-- TABLE OF CONTENTS -->
+<nav class="toc">
+  <h2>Contents</h2>
+  <ol>
+    <li><a href="#s1">The Blinn-Phong Model</a></li>
+    <li><a href="#s2">Camera Space &amp; Why It Matters</a></li>
+    <li><a href="#s3">The Three Matrices</a></li>
+    <li><a href="#s4">Vertex Shader</a></li>
+    <li><a href="#s5">Fragment Shader</a></li>
+    <li><a href="#s6">JavaScript: GetModelViewMatrix</a></li>
+    <li><a href="#s7">JavaScript: MeshDrawer Class</a></li>
+    <li><a href="#s8">Key WebGL Concepts</a></li>
+    <li><a href="#s9">Differences from Project 2</a></li>
+    <li><a href="#s10">Quick-Reference Cheat Sheet</a></li>
+  </ol>
+</nav>
+
+<!-- ============================================================ -->
+<!-- SECTION 1 -->
+<!-- ============================================================ -->
+<section id="s1">
+  <h2><span class="num">01</span> The Blinn-Phong Model</h2>
+  <p class="desc">A local illumination model that approximates how light interacts with a surface using two components.</p>
+
+  <div class="concept">
+    <h3><span class="dot dot-green"></span> Diffuse Component</h3>
+    <p>Models light scattered equally in all directions by a rough surface. Depends on the angle between the surface <strong>normal N</strong> and the <strong>light direction L</strong>.</p>
+    <p>Surfaces facing the light are bright; surfaces turned away are dark.</p>
+  </div>
+
+  <div class="formula">
+    <span class="label">Diffuse formula</span>
+    <span class="hl-green">diffuse</span> = <span class="hl-pink">Kd</span> × max( dot(<span class="hl-blue">N</span>, <span class="hl-yellow">L</span>), 0.0 )
+  </div>
+
+  <div class="concept">
+    <h3><span class="dot dot-blue"></span> Specular Component (Blinn variant)</h3>
+    <p>Models the bright highlight you see on shiny objects. Uses the <strong>half-vector H</strong> — the vector halfway between the light direction and the view direction — instead of the reflection vector (classic Phong).</p>
+    <p>The <strong>shininess</strong> exponent controls how tight the highlight is: low values = wide and dull, high values = small and sharp.</p>
+  </div>
+
+  <div class="formula">
+    <span class="label">Specular formula (Blinn)</span>
+    <span class="hl-blue">H</span> = normalize(<span class="hl-yellow">L</span> + <span class="hl-green">V</span>)
+    <span class="hl-blue">specular</span> = <span class="hl-pink">Ks</span> × pow( max( dot(<span class="hl-blue">N</span>, <span class="hl-blue">H</span>), 0.0 ), <span class="hl-yellow">shininess</span> )
+  </div>
+
+  <div class="concept">
+    <h3><span class="dot dot-pink"></span> Final Color</h3>
+    <p>The final pixel color is the sum of diffuse and specular, multiplied by the light intensity <strong>I</strong>.</p>
+  </div>
+
+  <div class="formula">
+    <span class="label">Final color</span>
+    color = <span class="hl-yellow">I</span> × ( <span class="hl-green">diffuse</span> + <span class="hl-blue">specular</span> )
+  </div>
+
+  <div class="callout">
+    <span class="icon">📝</span>
+    <p>In this project: <strong>I = (1,1,1)</strong> white light, <strong>Ks = (1,1,1)</strong> white specular, <strong>Kd = (1,1,1)</strong> or the texture color if a texture is active.</p>
+  </div>
+
+  <div class="concept">
+    <h3><span class="dot dot-yellow"></span> Vectors Recap</h3>
+    <p>All vectors must be <strong>normalized</strong> (length = 1) before use in dot products.</p>
+  </div>
+
+  <dl class="kv-list">
+    <dt>N</dt><dd>Surface normal at the fragment (interpolated from vertices)</dd>
+    <dt>L</dt><dd>Direction <em>toward</em> the light source</dd>
+    <dt>V</dt><dd>Direction from the surface point <em>toward</em> the camera (viewer)</dd>
+    <dt>H</dt><dd>Half-vector = normalize(L + V)</dd>
+    <dt>Kd</dt><dd>Diffuse material color (white or texture)</dd>
+    <dt>Ks</dt><dd>Specular material color (white)</dd>
+  </dl>
+</section>
+
+<!-- ============================================================ -->
+<!-- SECTION 2 -->
+<!-- ============================================================ -->
+<section id="s2">
+  <h2><span class="num">02</span> Camera Space &amp; Why It Matters</h2>
+  <p class="desc">All shading vectors must live in the same coordinate space. We choose camera space.</p>
+
+  <div class="concept">
+    <h3><span class="dot dot-green"></span> What is Camera Space?</h3>
+    <p>A coordinate system where the <strong>camera sits at the origin (0, 0, 0)</strong> and looks down the negative Z axis. Object positions and normals are transformed into this space using the model-view matrix.</p>
+  </div>
+
+  <div class="concept">
+    <h3><span class="dot dot-blue"></span> Why Camera Space?</h3>
+    <p>Because computing the <strong>view direction V</strong> becomes trivial: the camera is at the origin, so V is simply <code>normalize(-position)</code>. The light direction is already given in camera space by the interface, so no additional transformation is needed.</p>
+  </div>
+
+  <div class="pipeline">
+    <div class="stage">
+      <div class="name">Object Space</div>
+      <div class="detail">raw vertex data</div>
+    </div>
+    <div class="arrow">→</div>
+    <div class="stage" style="border-color: var(--accent);">
+      <div class="name" style="color: var(--accent);">Camera Space</div>
+      <div class="detail">shading happens here</div>
+    </div>
+    <div class="arrow">→</div>
+    <div class="stage">
+      <div class="name">Clip Space</div>
+      <div class="detail">after projection</div>
+    </div>
+    <div class="arrow">→</div>
+    <div class="stage">
+      <div class="name">Screen</div>
+      <div class="detail">pixels</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SECTION 3 -->
+<!-- ============================================================ -->
+<section id="s3">
+  <h2><span class="num">03</span> The Three Matrices</h2>
+  <p class="desc">Project 3 uses three transformation matrices instead of one.</p>
+
+  <table>
+    <thead>
+      <tr><th>Matrix</th><th>Type</th><th>Purpose</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>MVP</td>
+        <td>mat4</td>
+        <td>Full transformation for <code>gl_Position</code> (model → camera → clip)</td>
+      </tr>
+      <tr>
+        <td>MV</td>
+        <td>mat4</td>
+        <td>Model-View only. Transforms vertex positions into camera space for shading</td>
+      </tr>
+      <tr>
+        <td>MN</td>
+        <td>mat3</td>
+        <td>Normal matrix (inverse-transpose of MV). Transforms normals correctly into camera space</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout">
+    <span class="icon">⚠️</span>
+    <p><strong>Why not use MV for normals?</strong> If the model-view matrix contains non-uniform scaling, multiplying a normal by MV would skew it so it's no longer perpendicular to the surface. The inverse-transpose fixes this. The HTML computes it for you.</p>
+  </div>
+
+  <div class="callout">
+    <span class="icon">💡</span>
+    <p><strong>Why is MN a mat3?</strong> Normals are directions, not points. They don't need the 4th row/column that handles translation. A 3×3 matrix is sufficient.</p>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SECTION 4 -->
+<!-- ============================================================ -->
+<section id="s4">
+  <h2><span class="num">04</span> Vertex Shader</h2>
+  <p class="desc">Transforms positions and normals into camera space, then passes them to the fragment shader via varyings.</p>
+
+  <pre><span class="tag-label">GLSL — Vertex</span>
+<span class="kw">attribute</span> <span class="tp">vec3</span> pos;
+<span class="kw">attribute</span> <span class="tp">vec2</span> texCoord;
+<span class="kw">attribute</span> <span class="tp">vec3</span> normal;         <span class="cm">// NEW: per-vertex normal</span>
+
+<span class="kw">uniform</span> <span class="tp">mat4</span> mvp;
+<span class="kw">uniform</span> <span class="tp">mat4</span> mv;              <span class="cm">// NEW: model-view matrix</span>
+<span class="kw">uniform</span> <span class="tp">mat3</span> mn;              <span class="cm">// NEW: normal matrix (3×3)</span>
+<span class="kw">uniform</span> <span class="tp">bool</span> swapYZ;
+
+<span class="kw">varying</span> <span class="tp">vec2</span> vTexCoord;
+<span class="kw">varying</span> <span class="tp">vec3</span> vNormal;         <span class="cm">// NEW</span>
+<span class="kw">varying</span> <span class="tp">vec3</span> vPos;            <span class="cm">// NEW</span>
+
+<span class="kw">void</span> <span class="fn">main</span>() {
+    <span class="tp">vec3</span> p = pos;
+    <span class="tp">vec3</span> n = normal;
+
+    <span class="kw">if</span> (swapYZ) {
+        p = <span class="tp">vec3</span>(p.x, p.z, p.y);
+        n = <span class="tp">vec3</span>(n.x, n.z, n.y); <span class="cm">// swap normal too!</span>
+    }
+
+    vTexCoord = texCoord;
+    vPos    = (mv * <span class="tp">vec4</span>(p, <span class="nu">1.0</span>)).xyz;  <span class="cm">// position in camera space</span>
+    vNormal = mn * n;                      <span class="cm">// normal in camera space</span>
+
+    gl_Position = mvp * <span class="tp">vec4</span>(p, <span class="nu">1.0</span>);
+}</pre>
+
+  <div class="callout">
+    <span class="icon">🔑</span>
+    <p><strong>Key insight:</strong> <code>vPos = (mv * vec4(p, 1.0)).xyz</code> — positions are points (w=1.0, includes translation). <code>vNormal = mn * n</code> — normals are directions (3×3 matrix, no translation).</p>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SECTION 5 -->
+<!-- ============================================================ -->
+<section id="s5">
+  <h2><span class="num">05</span> Fragment Shader</h2>
+  <p class="desc">Implements Blinn-Phong lighting per-fragment using the interpolated varyings from the vertex shader.</p>
+
+  <pre><span class="tag-label">GLSL — Fragment</span>
+<span class="kw">precision</span> <span class="tp">mediump</span> <span class="tp">float</span>;
+
+<span class="kw">uniform</span> <span class="tp">vec3</span>      lightDir;     <span class="cm">// light direction (camera space)</span>
+<span class="kw">uniform</span> <span class="tp">float</span>     shininess;    <span class="cm">// specular exponent α</span>
+<span class="kw">uniform</span> <span class="tp">bool</span>      showTex;
+<span class="kw">uniform</span> <span class="tp">sampler2D</span> tex;
+
+<span class="kw">varying</span> <span class="tp">vec3</span> vPos;
+<span class="kw">varying</span> <span class="tp">vec2</span> vTexCoord;
+<span class="kw">varying</span> <span class="tp">vec3</span> vNormal;
+
+<span class="kw">void</span> <span class="fn">main</span>() {
+    <span class="cm">// 1. Normalize (interpolation can denormalize)</span>
+    <span class="tp">vec3</span> N = <span class="fn">normalize</span>(vNormal);
+    <span class="tp">vec3</span> L = <span class="fn">normalize</span>(lightDir);
+    <span class="tp">vec3</span> V = <span class="fn">normalize</span>(-vPos);       <span class="cm">// camera is at origin</span>
+    <span class="tp">vec3</span> H = <span class="fn">normalize</span>(L + V);       <span class="cm">// half-vector</span>
+
+    <span class="cm">// 2. Material color (Kd)</span>
+    <span class="tp">vec3</span> Kd = <span class="tp">vec3</span>(<span class="nu">1.0</span>);
+    <span class="kw">if</span> (showTex) {
+        Kd = <span class="fn">texture2D</span>(tex, vTexCoord).rgb;
+    }
+
+    <span class="cm">// 3. Diffuse &amp; Specular</span>
+    <span class="tp">float</span> diff = <span class="fn">max</span>(<span class="fn">dot</span>(N, L), <span class="nu">0.0</span>);
+    <span class="tp">float</span> spec = <span class="fn">pow</span>(<span class="fn">max</span>(<span class="fn">dot</span>(N, H), <span class="nu">0.0</span>), shininess);
+
+    <span class="cm">// 4. Final color: I * (Kd*diff + Ks*spec)</span>
+    gl_FragColor = <span class="tp">vec4</span>(Kd * diff + <span class="tp">vec3</span>(<span class="nu">1.0</span>) * spec, <span class="nu">1.0</span>);
+}</pre>
+
+  <div class="concept">
+    <h3><span class="dot dot-green"></span> Line-by-line breakdown</h3>
+    <p><strong>normalize(vNormal)</strong> — The GPU interpolates varyings across the triangle. This interpolation can shrink the normal below unit length, so we re-normalize.</p>
+    <p><strong>normalize(-vPos)</strong> — In camera space the camera is at (0,0,0). The view direction from a surface point toward the camera is <code>origin − point = −vPos</code>.</p>
+    <p><strong>normalize(L + V)</strong> — The Blinn half-vector. When H aligns with N, the viewer sees maximum specular reflection.</p>
+    <p><strong>max(dot(N, L), 0.0)</strong> — Cosine of the angle between normal and light. Clamped to 0 because negative values would mean the surface faces away from the light.</p>
+    <p><strong>pow(..., shininess)</strong> — Raises the specular term to the shininess exponent. Higher values create a tighter, more focused highlight.</p>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SECTION 6 -->
+<!-- ============================================================ -->
+<section id="s6">
+  <h2><span class="num">06</span> GetModelViewMatrix</h2>
+  <p class="desc">Returns the model-view transformation (no projection). The HTML multiplies by the projection matrix separately.</p>
+
+  <pre><span class="tag-label">JavaScript</span>
+<span class="kw">function</span> <span class="fn">GetModelViewMatrix</span>(translationX, translationY, translationZ, rotationX, rotationY) {
+    <span class="kw">var</span> trans = [
+        <span class="nu">1</span>, <span class="nu">0</span>, <span class="nu">0</span>, <span class="nu">0</span>,
+        <span class="nu">0</span>, <span class="nu">1</span>, <span class="nu">0</span>, <span class="nu">0</span>,
+        <span class="nu">0</span>, <span class="nu">0</span>, <span class="nu">1</span>, <span class="nu">0</span>,
+        translationX, translationY, translationZ, <span class="nu">1</span>
+    ];
+
+    <span class="kw">var</span> cx = Math.<span class="fn">cos</span>(rotationX), sx = Math.<span class="fn">sin</span>(rotationX);
+    <span class="kw">var</span> rotX = [
+        <span class="nu">1</span>,  <span class="nu">0</span>,  <span class="nu">0</span>, <span class="nu">0</span>,
+        <span class="nu">0</span>,  cx, sx, <span class="nu">0</span>,
+        <span class="nu">0</span>, -sx, cx, <span class="nu">0</span>,
+        <span class="nu">0</span>,  <span class="nu">0</span>,  <span class="nu">0</span>, <span class="nu">1</span>
+    ];
+
+    <span class="kw">var</span> cy = Math.<span class="fn">cos</span>(rotationY), sy = Math.<span class="fn">sin</span>(rotationY);
+    <span class="kw">var</span> rotY = [
+        cy, <span class="nu">0</span>, -sy, <span class="nu">0</span>,
+         <span class="nu">0</span>, <span class="nu">1</span>,   <span class="nu">0</span>, <span class="nu">0</span>,
+        sy, <span class="nu">0</span>,  cy, <span class="nu">0</span>,
+         <span class="nu">0</span>, <span class="nu">0</span>,   <span class="nu">0</span>, <span class="nu">1</span>
+    ];
+
+    <span class="cm">// Translation × RotY × RotX  (no projection!)</span>
+    <span class="kw">return</span> <span class="fn">MatrixMult</span>(trans, <span class="fn">MatrixMult</span>(rotY, rotX));
+}</pre>
+</section>
+
+<!-- ============================================================ -->
+<!-- SECTION 7 -->
+<!-- ============================================================ -->
+<section id="s7">
+  <h2><span class="num">07</span> MeshDrawer Class</h2>
+  <p class="desc">Complete JavaScript class with all new additions highlighted.</p>
+
+  <h3 style="font-size: 0.95rem; margin: 1.5rem 0 0.8rem; color: var(--accent);">constructor()</h3>
+  <pre><span class="tag-label">JavaScript</span>
+<span class="kw">constructor</span>() {
+    <span class="kw">this</span>.prog = <span class="fn">InitShaderProgram</span>(meshVS, meshFS);
+
+    <span class="cm">// Attribute locations</span>
+    <span class="kw">this</span>.posLoc      = gl.<span class="fn">getAttribLocation</span>(<span class="kw">this</span>.prog, <span class="st">'pos'</span>);
+    <span class="kw">this</span>.texCoordLoc = gl.<span class="fn">getAttribLocation</span>(<span class="kw">this</span>.prog, <span class="st">'texCoord'</span>);
+    <span class="new-line"><span class="kw">this</span>.normalLoc   = gl.<span class="fn">getAttribLocation</span>(<span class="kw">this</span>.prog, <span class="st">'normal'</span>);</span>
+
+    <span class="cm">// Uniform locations — matrices</span>
+    <span class="kw">this</span>.mvpLoc = gl.<span class="fn">getUniformLocation</span>(<span class="kw">this</span>.prog, <span class="st">'mvp'</span>);
+    <span class="new-line"><span class="kw">this</span>.mvLoc  = gl.<span class="fn">getUniformLocation</span>(<span class="kw">this</span>.prog, <span class="st">'mv'</span>);</span>
+    <span class="new-line"><span class="kw">this</span>.mnLoc  = gl.<span class="fn">getUniformLocation</span>(<span class="kw">this</span>.prog, <span class="st">'mn'</span>);</span>
+
+    <span class="cm">// Uniform locations — lighting</span>
+    <span class="new-line"><span class="kw">this</span>.lightDirLoc  = gl.<span class="fn">getUniformLocation</span>(<span class="kw">this</span>.prog, <span class="st">'lightDir'</span>);</span>
+    <span class="new-line"><span class="kw">this</span>.shininessLoc = gl.<span class="fn">getUniformLocation</span>(<span class="kw">this</span>.prog, <span class="st">'shininess'</span>);</span>
+
+    <span class="cm">// Uniform locations — texture &amp; swap</span>
+    <span class="kw">this</span>.swapYZLoc  = gl.<span class="fn">getUniformLocation</span>(<span class="kw">this</span>.prog, <span class="st">'swapYZ'</span>);
+    <span class="kw">this</span>.showTexLoc = gl.<span class="fn">getUniformLocation</span>(<span class="kw">this</span>.prog, <span class="st">'showTex'</span>);
+    <span class="kw">this</span>.texLoc     = gl.<span class="fn">getUniformLocation</span>(<span class="kw">this</span>.prog, <span class="st">'tex'</span>);
+
+    <span class="cm">// Buffers</span>
+    <span class="kw">this</span>.vertBuffer   = gl.<span class="fn">createBuffer</span>();
+    <span class="kw">this</span>.texBuffer    = gl.<span class="fn">createBuffer</span>();
+    <span class="new-line"><span class="kw">this</span>.normalBuffer = gl.<span class="fn">createBuffer</span>();</span>
+    <span class="kw">this</span>.texture      = gl.<span class="fn">createTexture</span>();
+    <span class="kw">this</span>.numTriangles = <span class="nu">0</span>;
+}</pre>
+
+  <h3 style="font-size: 0.95rem; margin: 1.5rem 0 0.8rem; color: var(--accent);">setMesh()</h3>
+  <pre><span class="tag-label">JavaScript</span>
+<span class="fn">setMesh</span>(vertPos, texCoords, normals) {
+    gl.<span class="fn">bindBuffer</span>(gl.ARRAY_BUFFER, <span class="kw">this</span>.vertBuffer);
+    gl.<span class="fn">bufferData</span>(gl.ARRAY_BUFFER, <span class="kw">new</span> Float32Array(vertPos), gl.STATIC_DRAW);
+
+    gl.<span class="fn">bindBuffer</span>(gl.ARRAY_BUFFER, <span class="kw">this</span>.texBuffer);
+    gl.<span class="fn">bufferData</span>(gl.ARRAY_BUFFER, <span class="kw">new</span> Float32Array(texCoords), gl.STATIC_DRAW);
+
+    <span class="new-line">gl.<span class="fn">bindBuffer</span>(gl.ARRAY_BUFFER, <span class="kw">this</span>.normalBuffer);</span>
+    <span class="new-line">gl.<span class="fn">bufferData</span>(gl.ARRAY_BUFFER, <span class="kw">new</span> Float32Array(normals), gl.STATIC_DRAW);</span>
+
+    <span class="kw">this</span>.numTriangles = vertPos.length / <span class="nu">3</span>;
+}</pre>
+
+  <h3 style="font-size: 0.95rem; margin: 1.5rem 0 0.8rem; color: var(--accent);">draw()</h3>
+  <pre><span class="tag-label">JavaScript</span>
+<span class="fn">draw</span>(matrixMVP, matrixMV, matrixNormal) {
+    gl.<span class="fn">useProgram</span>(<span class="kw">this</span>.prog);
+
+    <span class="cm">// Matrices</span>
+    gl.<span class="fn">uniformMatrix4fv</span>(<span class="kw">this</span>.mvpLoc, <span class="kw">false</span>, matrixMVP);
+    <span class="new-line">gl.<span class="fn">uniformMatrix4fv</span>(<span class="kw">this</span>.mvLoc,  <span class="kw">false</span>, matrixMV);</span>
+    <span class="new-line">gl.<span class="fn">uniformMatrix3fv</span>(<span class="kw">this</span>.mnLoc,  <span class="kw">false</span>, matrixNormal);</span>  <span class="cm">// 3fv!</span>
+
+    <span class="cm">// Positions</span>
+    gl.<span class="fn">bindBuffer</span>(gl.ARRAY_BUFFER, <span class="kw">this</span>.vertBuffer);
+    gl.<span class="fn">vertexAttribPointer</span>(<span class="kw">this</span>.posLoc, <span class="nu">3</span>, gl.FLOAT, <span class="kw">false</span>, <span class="nu">0</span>, <span class="nu">0</span>);
+    gl.<span class="fn">enableVertexAttribArray</span>(<span class="kw">this</span>.posLoc);
+
+    <span class="cm">// Texture coordinates</span>
+    gl.<span class="fn">bindBuffer</span>(gl.ARRAY_BUFFER, <span class="kw">this</span>.texBuffer);
+    gl.<span class="fn">vertexAttribPointer</span>(<span class="kw">this</span>.texCoordLoc, <span class="nu">2</span>, gl.FLOAT, <span class="kw">false</span>, <span class="nu">0</span>, <span class="nu">0</span>);
+    gl.<span class="fn">enableVertexAttribArray</span>(<span class="kw">this</span>.texCoordLoc);
+
+    <span class="cm">// Normals</span>
+    <span class="new-line">gl.<span class="fn">bindBuffer</span>(gl.ARRAY_BUFFER, <span class="kw">this</span>.normalBuffer);</span>
+    <span class="new-line">gl.<span class="fn">vertexAttribPointer</span>(<span class="kw">this</span>.normalLoc, <span class="nu">3</span>, gl.FLOAT, <span class="kw">false</span>, <span class="nu">0</span>, <span class="nu">0</span>);</span>
+    <span class="new-line">gl.<span class="fn">enableVertexAttribArray</span>(<span class="kw">this</span>.normalLoc);</span>
+
+    <span class="cm">// Texture</span>
+    gl.<span class="fn">activeTexture</span>(gl.TEXTURE0);
+    gl.<span class="fn">bindTexture</span>(gl.TEXTURE_2D, <span class="kw">this</span>.texture);
+    gl.<span class="fn">uniform1i</span>(<span class="kw">this</span>.texLoc, <span class="nu">0</span>);
+
+    gl.<span class="fn">drawArrays</span>(gl.TRIANGLES, <span class="nu">0</span>, <span class="kw">this</span>.numTriangles);
+}</pre>
+
+  <h3 style="font-size: 0.95rem; margin: 1.5rem 0 0.8rem; color: var(--accent);">setLightDir() &amp; setShininess()</h3>
+  <pre><span class="tag-label">JavaScript</span>
+<span class="fn">setLightDir</span>(x, y, z) {
+    gl.<span class="fn">useProgram</span>(<span class="kw">this</span>.prog);
+    gl.<span class="fn">uniform3f</span>(<span class="kw">this</span>.lightDirLoc, x, y, z);
+}
+
+<span class="fn">setShininess</span>(shininess) {
+    gl.<span class="fn">useProgram</span>(<span class="kw">this</span>.prog);
+    gl.<span class="fn">uniform1f</span>(<span class="kw">this</span>.shininessLoc, shininess);
+}</pre>
+</section>
+
+<!-- ============================================================ -->
+<!-- SECTION 8 -->
+<!-- ============================================================ -->
+<section id="s8">
+  <h2><span class="num">08</span> Key WebGL Concepts</h2>
+  <p class="desc">Essential terminology and patterns used throughout the project.</p>
+
+  <div class="concept">
+    <h3><span class="dot dot-green"></span> attribute vs uniform vs varying</h3>
+    <p><strong>attribute</strong> — per-vertex input data (position, normal, texcoord). Different for each vertex. Only in vertex shader.</p>
+    <p><strong>uniform</strong> — constant for the entire draw call (matrices, light direction, shininess). Same for every vertex/fragment. Accessible in both shaders.</p>
+    <p><strong>varying</strong> — output from vertex shader, input to fragment shader. The GPU automatically <strong>interpolates</strong> it across the triangle's surface.</p>
+  </div>
+
+  <div class="concept">
+    <h3><span class="dot dot-blue"></span> Buffer workflow (for each attribute)</h3>
+    <p><strong>1. createBuffer()</strong> — allocate a buffer on the GPU (done once, in constructor).</p>
+    <p><strong>2. bindBuffer() + bufferData()</strong> — upload data to the buffer (done when mesh changes).</p>
+    <p><strong>3. bindBuffer() + vertexAttribPointer() + enableVertexAttribArray()</strong> — connect the buffer to a shader attribute (done every draw call).</p>
+  </div>
+
+  <div class="concept">
+    <h3><span class="dot dot-pink"></span> precision mediump float</h3>
+    <p>Required declaration in WebGL fragment shaders. Sets the default floating-point precision. <code>mediump</code> is the standard choice — sufficient accuracy for color calculations, good performance. Without this line, the shader won't compile.</p>
+  </div>
+
+  <div class="concept">
+    <h3><span class="dot dot-yellow"></span> Column-major order</h3>
+    <p>WebGL and GLSL store matrices column by column, not row by row. A 4×4 matrix stored as a 16-element array: elements 0–3 = first column, 4–7 = second column, etc. This matters when constructing transformation matrices in JavaScript.</p>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SECTION 9 -->
+<!-- ============================================================ -->
+<section id="s9">
+  <h2><span class="num">09</span> Differences from Project 2</h2>
+  <p class="desc">A compact summary of every change.</p>
+
+  <table>
+    <thead>
+      <tr><th>What</th><th>Project 2</th><th>Project 3</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Transform fn</td>
+        <td>GetModelViewProjection(proj, …)</td>
+        <td>GetModelViewMatrix(…) — no projection</td>
+      </tr>
+      <tr>
+        <td>draw() args</td>
+        <td>draw(trans) — 1 matrix</td>
+        <td>draw(mvp, mv, mn) — 3 matrices</td>
+      </tr>
+      <tr>
+        <td>setMesh() args</td>
+        <td>setMesh(verts, texcoords)</td>
+        <td>setMesh(verts, texcoords, normals)</td>
+      </tr>
+      <tr>
+        <td>New methods</td>
+        <td>—</td>
+        <td>setLightDir(x,y,z), setShininess(s)</td>
+      </tr>
+      <tr>
+        <td>Vertex shader</td>
+        <td>Only mvp, pos, texCoord</td>
+        <td>+ mv, mn, normal, vPos, vNormal</td>
+      </tr>
+      <tr>
+        <td>Fragment shader</td>
+        <td>Texture or flat color</td>
+        <td>Full Blinn-Phong lighting</td>
+      </tr>
+      <tr>
+        <td>New buffers</td>
+        <td>—</td>
+        <td>normalBuffer</td>
+      </tr>
+      <tr>
+        <td>New uniforms</td>
+        <td>—</td>
+        <td>mv, mn, lightDir, shininess</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ============================================================ -->
+<!-- SECTION 10 -->
+<!-- ============================================================ -->
+<section id="s10">
+  <h2><span class="num">10</span> Quick-Reference Cheat Sheet</h2>
+  <p class="desc">Copy-paste ready uniform calls and GLSL patterns.</p>
+
+  <table>
+    <thead>
+      <tr><th>WebGL call</th><th>Sends</th><th>Used for</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>uniformMatrix4fv</td><td>mat4</td><td>MVP, MV matrices</td></tr>
+      <tr><td>uniformMatrix3fv</td><td>mat3</td><td>Normal matrix</td></tr>
+      <tr><td>uniform3f</td><td>vec3</td><td>Light direction</td></tr>
+      <tr><td>uniform1f</td><td>float</td><td>Shininess</td></tr>
+      <tr><td>uniform1i</td><td>int / bool</td><td>Texture unit, showTex, swapYZ</td></tr>
+    </tbody>
+  </table>
+
+  <div class="formula">
+    <span class="label">Blinn-Phong — complete formula</span>
+    <span class="hl-muted">N</span> = normalize(vNormal)
+    <span class="hl-muted">L</span> = normalize(lightDir)
+    <span class="hl-muted">V</span> = normalize(-vPos)
+    <span class="hl-muted">H</span> = normalize(L + V)
+    <span class="hl-green">diff</span> = max(dot(N, L), 0.0)
+    <span class="hl-blue">spec</span> = pow(max(dot(N, H), 0.0), shininess)
+    <span class="hl-pink">color</span> = Kd × <span class="hl-green">diff</span> + Ks × <span class="hl-blue">spec</span>
+  </div>
+</section>
+
+<footer>
+  Project 3 — Blinn-Phong Shading &bull; Interactive Computer Graphics &bull; Study Sheet
+</footer>
+
+</body>
+</html>
