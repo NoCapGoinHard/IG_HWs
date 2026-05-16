@@ -41,13 +41,29 @@ vec3 Shade( Material mat, vec3 pos, vec3 norm, vec3 viewDir )
 	vec3 finalColor = vec3(0.0);
 	
 	for ( int i = 0; i < NUM_LIGHTS; ++i ) {
-		// Shadow check
+		// Shadow ray with INWARD offset: place the ray origin slightly INSIDE
+		// the surface we're on. This fix handles both rendering modes uniformly:
+		//   - Self-check on our own sphere: smaller root is negative (entry is
+		//     behind us), so it's correctly rejected.
+		//   - Floor point under a tangent sphere: the inward offset moves us
+		//     DOWN into the floor, OUTSIDE the small sphere above, so the
+		//     smaller root correctly detects the shadow.
+		//   - Secondary mode (rasterized positions): even when the rasterized
+		//     point is significantly inside the analytical sphere due to chord
+		//     interpolation error, the smaller root is still negative for the
+		//     self-check, so we don't get spurious self-shadowing.
+		//
+		// The shadow ray direction is also normalized so that t-values are in
+		// real distance units, avoiding the bright-ring artifact caused by tiny
+		// t-values falling below the intersection threshold.
 		Ray sRay;
-		sRay.pos = pos + 0.001 * norm; // avoid self-intersection
-		sRay.dir = lights[i].position - sRay.pos; 
+		sRay.pos = pos - 0.001 * norm;
+		vec3 toLight = lights[i].position - sRay.pos;
+		float lightDist = length( toLight );
+		sRay.dir = toLight / lightDist;
 		
 		HitInfo sHit;
-		if ( IntersectRay( sHit, sRay ) && sHit.t < 1.0 ) {
+		if ( IntersectRay( sHit, sRay ) && sHit.t < lightDist ) {
 			continue; // Obstructed by another object
 		}
 
@@ -78,13 +94,13 @@ bool IntersectRay( inout HitInfo hitRecord, Ray r )
 		vec3 dist = r.pos - spheres[i].center;
 
 		float A = dot( r.dir, r.dir );
-		float B = 2.0 * dot ( dist, r.dir );
+		float B = 2.0 * dot( dist, r.dir );
 		float C = dot( dist, dist ) - (spheres[i].radius * spheres[i].radius);
 
 		float delta = (B * B) - (4.0 * A * C);
 
 		if ( delta > 0.0 ) {
-			float tVal = (-B - sqrt(delta)) / (2.0 * A); 
+			float tVal = (-B - sqrt(delta)) / (2.0 * A);
 
 			if ( tVal > 0.0001 && tVal < hitRecord.t ) {
 				hitRecord.t = tVal;
@@ -112,7 +128,6 @@ vec4 RayTracer( Ray initialRay )
 			if ( b >= bounceLimit ) {
 			    break;
 			}
-			// Alternative check for vector sum
 			if ( currentHit.mtl.k_s.x + currentHit.mtl.k_s.y + currentHit.mtl.k_s.z <= 0.0 ) {
 			    break;
 			}
